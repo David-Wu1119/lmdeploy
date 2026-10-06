@@ -222,7 +222,10 @@ class Engine:
 
         sess: list[Session] = []
         for _, input_len, output_len in requests:
-            sess.append(profiler.new_session(input_len, output_len))
+            # Without ignore_eos a request may stop before max_new_tokens; the
+            # profiler drops sessions shorter than req_output_len, so only
+            # require the full length when it is forced.
+            sess.append(profiler.new_session(input_len, output_len if ignore_eos else 0))
 
         def _to_status(finish_reason):
             if finish_reason in ('length', 'stop'):
